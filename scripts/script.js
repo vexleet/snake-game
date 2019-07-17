@@ -3,13 +3,17 @@ window.onload = function () {
     let ctx = canvas.getContext("2d");
     let appleX = canvas.width / 2;
     let appleY = canvas.height / 2;
-    let appleRadius = 10;
-    let snakeX = canvas.width / 2;
+    let snakeX = 50;
     let snakeY = canvas.height / 2;
     let snakeIsGoingUp = false;
     let snakeIsGoingDown = false;
-    let snakeIsGoingRight = false;
+    let snakeIsGoingRight = true;
     let snakeIsGoingLeft = false;
+    let snake = [{
+        x: snakeX,
+        y: snakeY,
+    }];
+    let score = 0;
 
     function drawApple() {
         ctx.beginPath();
@@ -20,14 +24,27 @@ window.onload = function () {
     }
 
     function drawSnake() {
-        ctx.beginPath();
-        ctx.rect(snakeX, snakeY, 20, 20);
-        ctx.fillStyle = "green";
-        ctx.fill();
-        ctx.closePath();
+        for (let i = 0; i < snake.length; i++) {
+            let s = snake[i];
+
+            ctx.beginPath();
+            ctx.rect(s.x, s.y, 20, 20);
+            ctx.fillStyle = "green";
+            ctx.fill();
+            ctx.closePath();
+        }
     }
 
-    document.addEventListener('keyup', snakeMovementListener);
+    function collision(head, array) {
+        for (let i = 0; i < array.length; i++) {
+            if (head.x == array[i].x && head.y == array[i].y) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    document.addEventListener('keydown', snakeMovementListener);
 
     function snakeMovementListener(e) {
         if (e.keyCode === 87 || e.keyCode === 83 ||
@@ -55,45 +72,42 @@ window.onload = function () {
         drawApple();
         drawSnake();
 
-        if (snakeX >= canvas.width - 20) {
-            alert('You Lose');
-            location.reload();
-        }
-        if (snakeX <= 0) {
-            alert('You Lose');
-            location.reload();
-        }
-        if (snakeY >= canvas.height - 20) {
-            alert('You Lose');
-            location.reload();
-        }
-        if (snakeY <= 0) {
-            alert('You Lose');
-            location.reload();
+        if (snakeIsGoingLeft) {
+            snakeX -= 20;
+        } else if (snakeIsGoingRight) {
+            snakeX += 20;
+        } else if (snakeIsGoingUp) {
+            snakeY -= 20;
+        } else if (snakeIsGoingDown) {
+            snakeY += 20;
         }
 
         if (appleX < snakeX + 20 && appleX + 10 > snakeX &&
             appleY < snakeY + 20 && appleY + 10 > snakeY) {
-            console.log(appleX, snakeX);
-            console.log(appleY, snakeY);
-
-            appleX = Math.floor(Math.random() * canvas.width - 50) + 50;
-            appleY = Math.floor(Math.random() * canvas.height - 50) + 50;
+            appleX = Math.floor(Math.random() * 17 + 1) * 20;
+            appleY = Math.floor(Math.random() * 15 + 3) * 20;
+            score++;
+        } else {
+            snake.pop();
         }
 
-        if (snakeIsGoingLeft) {
-            snakeX -= 2;
-        } else if (snakeIsGoingRight) {
-            snakeX += 2;
-        } else if (snakeIsGoingUp) {
-            snakeY -= 2;
-        } else if (snakeIsGoingDown) {
-            snakeY += 2;
+        let newHead = {
+            x: snakeX,
+            y: snakeY,
         }
 
+        if (snakeX >= canvas.width - 20 || snakeX + 20 <= 0 ||
+            snakeY >= canvas.height || snakeY <= 20 || collision(newHead, snake)) {
+            clearInterval(game);
+        }
 
-        requestAnimationFrame(draw);
+        snake.unshift(newHead);
+
+        ctx.fillStyle = "white";
+        ctx.font = "30px Changa one";
+        ctx.fillText(`Score: ${score}`, 20, 30);
     }
 
-    draw();
+
+    let game = setInterval(draw, 100)
 };
